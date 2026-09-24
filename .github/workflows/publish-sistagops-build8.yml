@@ -1,0 +1,32 @@
+name: Publish sisTAGops build 8 APK
+on:
+  push:
+    branches: [sistagops-apk-build7-20260924]
+    paths:
+      - '.github/workflows/publish-sistagops-build8.yml'
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: sistagops-apk-build7-20260924
+          persist-credentials: true
+      - name: Download build8 APK artifact
+        env:
+          APK_ARTIFACT_URL: 'https://sdmntpritalynorth.oaiusercontent.com/files/00000000-3ef8-8246-b9f1-982e51ee097b/raw?se=2026-09-24T16%3A04%3A40Z&sp=r&sv=2026-02-06&sr=b&scid=02dc05d7-d76e-5e6f-a4b3-a2ddaf10cddb&skoid=45d5558d-260a-4eed-aec4-6bc512bdfda4&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-24T15%3A54%3A25Z&ske=2026-09-25T15%3A54%3A25Z&sks=b&skv=2026-02-06&sig=iZLqQz416Jt4pioErzSnLKSeGWMv/DBAVlkge0mLVoA%3D'
+        run: |
+          set -euo pipefail
+          curl -fLsS --retry 3 --max-time 120 "$APK_ARTIFACT_URL" -o "$RUNNER_TEMP/build8.zip"
+          unzip -p "$RUNNER_TEMP/build8.zip" sisTAGops-build8-share-jpg.apk > distribusi-sisTAGops-build7/sisTAGops-build8.apk
+          printf '%s  %s\n' '0098a4ff73978fe963bf85e910a228449710ccd38a6feeb626f8f36526e2f3e8' 'distribusi-sisTAGops-build7/sisTAGops-build8.apk' | sha256sum --check -
+      - name: Publish binary
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add distribusi-sisTAGops-build7/sisTAGops-build8.apk
+          git commit -m 'Publish verified sisTAGops build.8 APK'
+          git push origin HEAD:sistagops-apk-build7-20260924
